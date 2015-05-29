@@ -11,7 +11,7 @@
 
 #define MAX 100
 #define DEM "( )"
-
+#define DEBUG 0
 
 void mylog(char *info);
 char ***parse(char *re);
@@ -36,6 +36,79 @@ int main(int argc, char *argv[])
 */
 	char ***tokOp = parse(re);
 	printTokOp(tokOp);
+
+	if(match(tokOp, str))
+		printf("match !!!\n");
+	else
+		printf("no match !!!\n");
+	
+	return 0;
+}
+
+int match(char ***tokOp, char *str)
+{
+	while(*tokOp != NULL){
+		char *s = (**tokOp)[0];
+		char *op = (**tokOp)[1];
+		if(op == NULL){
+			if(!strStr(&str,s))
+				return 0;
+		}
+		else{
+			if(!regStr(&str, *tokOp))
+				return 0;
+		}
+		tokOp++;
+	}
+
+	if(*tokOp == NULL && *str == '\0')
+		return 1;
+	else
+		return 0;
+}
+
+int regStr(char **strRef, char *tokOp)
+{
+	char *str = *strRef;
+	char *s = tokOp[0];
+	char *op = tokOp[1];
+
+	int min, max;
+	switch(*op){
+		case '+':
+			min = 1;
+			max = INT_MAX;
+			break;
+		case '*':
+			min = 0;
+			max = INT_MAX;
+			break;
+	}
+
+	while(min--){
+		if(!strStr(strRef, s))
+			return 0;
+	}
+
+	while(max){
+	}
+}
+
+int strStr(char **strRef, char *s)
+{
+	char *str = *strRef;
+	while(*str != '\0' && *s != '\0'){
+		if(*strRef != *s)
+			return 0;
+		s++;
+		str++;
+	}
+
+	*strRef = str;
+	if(*s == '\0')
+		return 1;
+	else
+		return 0;
 }
 
 char ***parse(char *re)
@@ -115,7 +188,8 @@ void errExit(char *errMsg)
 
 void mylog(char *info)
 {
-	fprintf(stderr, "log::info::%s", info);
+	if(DEBUG)
+		fprintf(stderr, "log::info::%s", info);
 }
 
 void errUsage(char *progName)
