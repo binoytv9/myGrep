@@ -7,6 +7,7 @@
 
 #include<stdio.h>
 #include<string.h>
+#include<limits.h>
 #include<stdlib.h>
 
 #define MAX 100
@@ -30,12 +31,16 @@ int main(int argc, char *argv[])
 
 	char *re = argv[1];
 	char *str = argv[2];
+
 /*
-	char re[MAX] = "(abc)(de)+";
-	char str[MAX]= "abcde";
+	char re[MAX] = "(abc)(de)+(abc)*";
+	char str[MAX]= "abcdedededededededeabc";
 */
+
 	char ***tokOp = parse(re);
-	printTokOp(tokOp);
+
+	if(DEBUG)
+		printTokOp(tokOp);
 
 	if(match(tokOp, str))
 		printf("match !!!\n");
@@ -48,8 +53,14 @@ int main(int argc, char *argv[])
 int match(char ***tokOp, char *str)
 {
 	while(*tokOp != NULL){
-		char *s = (**tokOp)[0];
-		char *op = (**tokOp)[1];
+		char *s = (*tokOp)[0];
+		char *op = (*tokOp)[1];
+
+		if(DEBUG){
+			char *tmp = op == NULL ? " " : op;
+			printf("[%s, %s]\n", s, tmp);
+		}
+
 		if(op == NULL){
 			if(!strStr(&str,s))
 				return 0;
@@ -67,7 +78,28 @@ int match(char ***tokOp, char *str)
 		return 0;
 }
 
-int regStr(char **strRef, char *tokOp)
+int strStr(char **strRef, char *s)
+{
+	char *str = *strRef;
+
+	if(DEBUG)
+		printf("%s %s\n", str, s);
+
+	while(*str != '\0' && *s != '\0'){
+		if(*str != *s)
+			return 0;
+		s++;
+		str++;
+	}
+
+	*strRef = str;
+	if(*s == '\0')
+		return 1;
+	else
+		return 0;
+}
+
+int regStr(char **strRef, char **tokOp)
 {
 	char *str = *strRef;
 	char *s = tokOp[0];
@@ -90,25 +122,15 @@ int regStr(char **strRef, char *tokOp)
 			return 0;
 	}
 
-	while(max){
-	}
-}
-
-int strStr(char **strRef, char *s)
-{
-	char *str = *strRef;
-	while(*str != '\0' && *s != '\0'){
-		if(*strRef != *s)
-			return 0;
-		s++;
-		str++;
+	while(max--){
+		char *tmp = *strRef;
+		if(!strStr(strRef, s)){
+			*strRef = tmp;
+			return 1;
+		}
 	}
 
-	*strRef = str;
-	if(*s == '\0')
-		return 1;
-	else
-		return 0;
+	return 1;
 }
 
 char ***parse(char *re)
